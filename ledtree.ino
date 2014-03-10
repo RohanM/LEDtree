@@ -7,11 +7,11 @@
 #define SONAR_DEVICE 112
 
 
-#define DATA_PIN_0 0
-#define DATA_PIN_1 1
-#define DATA_PIN_2 2
-#define DATA_PIN_3 3
-#define DATA_PIN_4 4
+#define DATA_PIN_0 2
+#define DATA_PIN_1 3
+#define DATA_PIN_2 4
+#define DATA_PIN_3 5
+#define DATA_PIN_4 6
 
 CRGB leds[NUM_STRIPS][NUM_LEDS];
 
