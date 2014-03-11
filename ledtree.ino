@@ -67,16 +67,27 @@ Input a value into the bottom of the buffer
 void moveAndIntensify(CRGB leds[]) {
   for(int i=NUM_LEDS-1; i > 0; i--) {
     leds[i] = leds[i-1];
-    if(i > NUM_LEDS/2) {
-      leds[i].red   += 0;
-      leds[i].green += 2;
-      leds[i].blue  += 0;
+    if(i > NUM_LEDS/3*2) {
+      leds[i].red   *= 1.5;
+      leds[i].green *= 1.2;
+      leds[i].blue  *= 1.5;
+      
+      leds[i] = clampColour(leds[i]);
     }
   }
 }
 
+// I don't think this works
+CRGB clampColour(CRGB colour) {
+  if(colour.red   > 255) { colour.red   = 255; }
+  if(colour.green > 255) { colour.green = 255; }
+  if(colour.blue  > 255) { colour.blue  = 255; }
+
+  return colour;
+}
+
 void setBottomValue(CRGB leds[]) {
-  leds[0] = CHSV(90, 180, (sin(counter/5.0)+1.0)*50.0+40);
+  leds[0] = CHSV(90, 180, (sin(counter/5.0)+1.0)*30.0+10);
 }
 
 
