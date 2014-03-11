@@ -6,7 +6,6 @@
 
 #define SONAR_DEVICE 112
 
-
 #define DATA_PIN_0 2
 #define DATA_PIN_1 3
 #define DATA_PIN_2 4
@@ -14,6 +13,8 @@
 #define DATA_PIN_4 6
 
 CRGB leds[NUM_STRIPS][NUM_LEDS];
+int counter;
+
 
 void setup() {
   FastLED.addLeds<WS2811, DATA_PIN_0, BRG>(leds[0], NUM_LEDS);
@@ -23,24 +24,61 @@ void setup() {
   FastLED.addLeds<WS2811, DATA_PIN_4, BRG>(leds[4], NUM_LEDS);
   FastLED.clear();
 
-  Wire.begin();                // join i2c bus (address optional for master)
-  Serial.begin(9600);          // start serial communication at 9600bps
+  Wire.begin();
+  
+  Serial.begin(9600);
+  
+  counter = 0;
 }
 
 
 void loop() {
-  //illuminateAll();
-  
+
+/*
+The Main Effect
+
+Buffer of colours (we have this)
+Shift all values up to the next LED, intensifying by a constant, clamped at max
+  Perhaps store values as HSV to make this easier
+Input a value into the bottom of the buffer
+  Sine wave from dim green to brighter and less saturated green
+  Plus input from sensor, adding brightness and removing saturation
+*/
+
+  for(int i=0; i < NUM_STRIPS; i++) {
+    moveAndIntensify(leds[i]);
+    setBottomValue(leds[i]);
+  }
+
+  FastLED.show();
+  counter++;
+  delay(100);  
+
+/*
   int level = readSonar();
-  Serial.println("Level:");
-  Serial.println(level);
-  Serial.println("..");
-  
+
   if(level > 0) {
     setLedLevel(level);
   }
   delay(250);
+  */
 }
+
+void moveAndIntensify(CRGB leds[]) {
+  for(int i=NUM_LEDS-1; i > 0; i--) {
+    leds[i] = leds[i-1];
+    if(i > NUM_LEDS/2) {
+      leds[i].red   += 0;
+      leds[i].green += 2;
+      leds[i].blue  += 0;
+    }
+  }
+}
+
+void setBottomValue(CRGB leds[]) {
+  leds[0] = CHSV(90, 180, (sin(counter/5.0)+1.0)*50.0+40);
+}
+
 
 
 void setLedLevel(int level) {
@@ -49,7 +87,6 @@ void setLedLevel(int level) {
 
   for(int i=0; i < NUM_STRIPS; i++) {
     for(int j=0; j < NUM_LEDS; j++) {
-      // j - 0 to 50
       if(j*20 < level) {
         colour = colours[i];
       } else {
