@@ -13,6 +13,7 @@
 #define DATA_PIN_4 6
 
 CRGB leds[NUM_STRIPS][NUM_LEDS];
+int sonarReadings[NUM_STRIPS];
 int counter;
 
 
@@ -45,6 +46,8 @@ Input a value into the bottom of the buffer
   Plus input from sensor, adding brightness and removing saturation
 */
 
+  readAllSonars();
+
   for(int i=0; i < NUM_STRIPS; i++) {
     moveAndIntensify(leds[i]);
     setBottomValue(leds[i]);
@@ -52,7 +55,7 @@ Input a value into the bottom of the buffer
 
   FastLED.show();
   counter++;
-  delay(100);  
+  //delay(100);
 
 /*
   int level = readSonar();
@@ -72,12 +75,13 @@ void moveAndIntensify(CRGB leds[]) {
       leds[i].green *= 1.2;
       leds[i].blue  *= 1.5;
       
-      leds[i] = clampColour(leds[i]);
+      //leds[i] = clampColour(leds[i]);
     }
   }
 }
 
 // I don't think this works
+/*
 CRGB clampColour(CRGB colour) {
   if(colour.red   > 255) { colour.red   = 255; }
   if(colour.green > 255) { colour.green = 255; }
@@ -85,10 +89,23 @@ CRGB clampColour(CRGB colour) {
 
   return colour;
 }
+*/
+
+// How about having each of the strips out of alignment?
+// ie. different starting point?
+// Randomly or sequentially (--> spiral)
+
 
 void setBottomValue(CRGB leds[]) {
-  leds[0] = CHSV(90, 180, (sin(counter/5.0)+1.0)*30.0+10);
+    
+  int sonar = sonarReadings[0];
+
+  leds[0]  = CHSV(90, 180, (sin(counter/4.0)+1.0)*30.0+10);
+  if(sonar > 0 && sonar < 255) {
+    leds[0] += CHSV(30, 255, (255-sonar)/2);
+  }
 }
+
 
 
 
@@ -109,6 +126,17 @@ void setLedLevel(int level) {
   
   FastLED.show();
 }
+
+
+void readAllSonars() {
+  sonarReadings[0] = readSonar();
+}
+
+
+// TODO: Preprocessing for sonar
+// Use only 2-3 m range
+// Rolling mean of last 5 or 10 values, perhaps 1 s worth of sampling
+
 
 
 int readSonar() {
@@ -144,11 +172,11 @@ int readSonar() {
     //reading = reading << 8;    // shift high byte to be high 8 bits
     //reading |= Wire.read(); // receive low byte as lower 8 bits
 
-    Serial.println(high);
-    Serial.println(low);
+    //Serial.println(high);
+    //Serial.println(low);
     Serial.println(reading);   // print the reading
     
-    Serial.println("..");
+    //Serial.println("..");
     
   }
   
