@@ -58,32 +58,28 @@ void loop() {
     moveAndIntensify(leds[i]);
     setBottomValue(leds[i]);
   }
-
   FastLED.show();
+
   counter++;
   //delay(100);
-
-/*
-  int level = readSonar();
-
-  if(level > 0) {
-    setLedLevel(level);
-  }
-  delay(250);
-  */
 }
 
 void moveAndIntensify(CRGB leds[]) {
   for(int i=NUM_LEDS-1; i > 0; i--) {
     leds[i] = leds[i-1];
     if(i > NUM_LEDS/3*2) {
-      leds[i].red   *= 1.5;
-      leds[i].green *= 1.2;
-      leds[i].blue  *= 1.5;
+      leds[i] = intensify(leds[i]);
     }
   }
 }
 
+CRGB intensify(CRGB colour) {
+  colour.red   *= 1.5;
+  colour.green *= 1.2;
+  colour.blue  *= 1.5;
+
+  return colour;
+}
 
 // How about having each of the strips out of alignment?
 // ie. different starting point?
@@ -91,17 +87,21 @@ void moveAndIntensify(CRGB leds[]) {
 
 
 void setBottomValue(CRGB leds[]) {
-    
   int sonar = proximities[0];
 
-  leds[0]  = CHSV(90, 180, (sin(counter/4.0)+1.0)*30.0+10);
+  leds[0] = CHSV(90, 180, backgroundPulseBrightness(counter, 0));
   if(sonar > 0 && sonar < 255) {
-    leds[0] += CHSV(30, 255, (255-sonar)/2);
+    leds[0] += CHSV(30, 255, sonarBrightness(sonar));
   }
 }
 
+int backgroundPulseBrightness(int index, int offset) {
+  return (sin(index / 4.0) + 1.0) * 30.0 + 10;
+}
 
-
+int sonarBrightness(int sonar) {
+  return (255 - sonar) / 2;
+}
 
 void setLedLevel(int level) {
   CRGB colours[] = {CRGB::Lime, CRGB::Pink, CRGB::Green, CRGB::Blue, CRGB::Purple};
