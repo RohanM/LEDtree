@@ -123,40 +123,34 @@ void setLedLevel(int level) {
 
 
 void readAllSonars() {
+  int sonar = 0; // Will be a loop over 0..NUM_STRIPS
+  incrementSonarIndex(sonar);
+  takeSonarReading(sonar);
+  proximities[sonar] = avgSonarReading(sonar);
 
-
-/*
-Rolling mean
-
-Maybe 10 values
-Have a 2D global array with that data
-Then have a 1D global array storing processed values
-
-
-proximities[NUM_STRIPS] -- averaged values
-sonarReadings[NUM_STRIPS][NUM_SONAR_SAMPLES] -- actual samples
-sonarIndices[NUM_STRIPS] -- last written index
-
-
-Alg:
-
-
-
-
-*/
-
-
-
-
-
-  proximities[0] = readSonar();
+  Serial.println(proximities[sonar]);
 }
 
+void incrementSonarIndex(int sonar) {
+  sonarIndices[sonar]++;
+  if(sonarIndices[sonar] >= NUM_SONAR_SAMPLES) {
+    sonarIndices[sonar] = 0;
+  }
+}
 
-// TODO: Preprocessing for sonar
-// Use only 2-3 m range
-// Rolling mean of last 5 or 10 values, perhaps 1 s worth of sampling
+void takeSonarReading(int sonar) {
+  sonarReadings[sonar][sonarIndices[sonar]] = readSonar();
+}
 
+int avgSonarReading(int strip) {
+  int sum = 0;
+
+  for(int i=0; i < NUM_SONAR_SAMPLES; i++) {
+    sum += sonarReadings[strip][i];
+  }
+
+  return sum / NUM_SONAR_SAMPLES;
+}
 
 
 int readSonar() {
@@ -194,7 +188,7 @@ int readSonar() {
 
     //Serial.println(high);
     //Serial.println(low);
-    Serial.println(reading);   // print the reading
+    //Serial.println(reading);   // print the reading
     
     //Serial.println("..");
     
