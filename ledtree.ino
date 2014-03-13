@@ -16,22 +16,38 @@
 int counter;
 CRGB leds[NUM_STRIPS][NUM_LEDS];
 int sonarReadings[NUM_STRIPS][NUM_SONAR_SAMPLES];
+int sonarIndices[NUM_STRIPS];
 int proximities[NUM_STRIPS];
 
 
 void setup() {
+  initLEDs();
+  initSonars();
+
+  Serial.begin(9600);
+  counter = 0;
+}
+
+void initLEDs() {
   FastLED.addLeds<WS2811, LED_DATA_PIN_0, BRG>(leds[0], NUM_LEDS);
   FastLED.addLeds<WS2811, LED_DATA_PIN_1, BRG>(leds[1], NUM_LEDS);
   FastLED.addLeds<WS2811, LED_DATA_PIN_2, BRG>(leds[2], NUM_LEDS);
   FastLED.addLeds<WS2811, LED_DATA_PIN_3, BRG>(leds[3], NUM_LEDS);
   FastLED.addLeds<WS2811, LED_DATA_PIN_4, BRG>(leds[4], NUM_LEDS);
   FastLED.clear();
+}
 
+void initSonars() {
   Wire.begin();
-  
-  Serial.begin(9600);
-  
-  counter = 0;
+
+  // Zero data
+  for(int i=0; i < NUM_STRIPS; i++) {
+    sonarIndices[i] = 0;
+    proximities[i] = 0;
+    for(int j=0; j < NUM_SONAR_SAMPLES; j++) {
+      sonarReadings[i][j] = 0;
+    }
+  }
 }
 
 
@@ -117,7 +133,18 @@ Have a 2D global array with that data
 Then have a 1D global array storing processed values
 
 
+proximities[NUM_STRIPS] -- averaged values
+sonarReadings[NUM_STRIPS][NUM_SONAR_SAMPLES] -- actual samples
+sonarIndices[NUM_STRIPS] -- last written index
+
+
+Alg:
+
+
+
+
 */
+
 
 
 
