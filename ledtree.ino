@@ -4,25 +4,27 @@
 #define NUM_STRIPS 5
 #define NUM_LEDS 50
 
+#define NUM_SONAR_SAMPLES 10
 #define SONAR_DEVICE 112
 
-#define DATA_PIN_0 2
-#define DATA_PIN_1 3
-#define DATA_PIN_2 4
-#define DATA_PIN_3 5
-#define DATA_PIN_4 6
+#define LED_DATA_PIN_0 2
+#define LED_DATA_PIN_1 3
+#define LED_DATA_PIN_2 4
+#define LED_DATA_PIN_3 5
+#define LED_DATA_PIN_4 6
 
-CRGB leds[NUM_STRIPS][NUM_LEDS];
-int sonarReadings[NUM_STRIPS];
 int counter;
+CRGB leds[NUM_STRIPS][NUM_LEDS];
+int sonarReadings[NUM_STRIPS][NUM_SONAR_SAMPLES];
+int proximities[NUM_STRIPS];
 
 
 void setup() {
-  FastLED.addLeds<WS2811, DATA_PIN_0, BRG>(leds[0], NUM_LEDS);
-  FastLED.addLeds<WS2811, DATA_PIN_1, BRG>(leds[1], NUM_LEDS);
-  FastLED.addLeds<WS2811, DATA_PIN_2, BRG>(leds[2], NUM_LEDS);
-  FastLED.addLeds<WS2811, DATA_PIN_3, BRG>(leds[3], NUM_LEDS);
-  FastLED.addLeds<WS2811, DATA_PIN_4, BRG>(leds[4], NUM_LEDS);
+  FastLED.addLeds<WS2811, LED_DATA_PIN_0, BRG>(leds[0], NUM_LEDS);
+  FastLED.addLeds<WS2811, LED_DATA_PIN_1, BRG>(leds[1], NUM_LEDS);
+  FastLED.addLeds<WS2811, LED_DATA_PIN_2, BRG>(leds[2], NUM_LEDS);
+  FastLED.addLeds<WS2811, LED_DATA_PIN_3, BRG>(leds[3], NUM_LEDS);
+  FastLED.addLeds<WS2811, LED_DATA_PIN_4, BRG>(leds[4], NUM_LEDS);
   FastLED.clear();
 
   Wire.begin();
@@ -34,18 +36,6 @@ void setup() {
 
 
 void loop() {
-
-/*
-The Main Effect
-
-Buffer of colours (we have this)
-Shift all values up to the next LED, intensifying by a constant, clamped at max
-  Perhaps store values as HSV to make this easier
-Input a value into the bottom of the buffer
-  Sine wave from dim green to brighter and less saturated green
-  Plus input from sensor, adding brightness and removing saturation
-*/
-
   readAllSonars();
 
   for(int i=0; i < NUM_STRIPS; i++) {
@@ -74,22 +64,10 @@ void moveAndIntensify(CRGB leds[]) {
       leds[i].red   *= 1.5;
       leds[i].green *= 1.2;
       leds[i].blue  *= 1.5;
-      
-      //leds[i] = clampColour(leds[i]);
     }
   }
 }
 
-// I don't think this works
-/*
-CRGB clampColour(CRGB colour) {
-  if(colour.red   > 255) { colour.red   = 255; }
-  if(colour.green > 255) { colour.green = 255; }
-  if(colour.blue  > 255) { colour.blue  = 255; }
-
-  return colour;
-}
-*/
 
 // How about having each of the strips out of alignment?
 // ie. different starting point?
@@ -98,7 +76,7 @@ CRGB clampColour(CRGB colour) {
 
 void setBottomValue(CRGB leds[]) {
     
-  int sonar = sonarReadings[0];
+  int sonar = proximities[0];
 
   leds[0]  = CHSV(90, 180, (sin(counter/4.0)+1.0)*30.0+10);
   if(sonar > 0 && sonar < 255) {
@@ -129,7 +107,22 @@ void setLedLevel(int level) {
 
 
 void readAllSonars() {
-  sonarReadings[0] = readSonar();
+
+
+/*
+Rolling mean
+
+Maybe 10 values
+Have a 2D global array with that data
+Then have a 1D global array storing processed values
+
+
+*/
+
+
+
+
+  proximities[0] = readSonar();
 }
 
 
