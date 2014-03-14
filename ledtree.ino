@@ -5,6 +5,7 @@
 #define NUM_LEDS 50
 
 #define NUM_SONAR_SAMPLES 10
+
 #define SONAR_DEVICE 112
 
 #define LED_DATA_PIN_0 2
@@ -28,6 +29,20 @@ void setup() {
   counter = 0;
 }
 
+void loop() {
+  readAllSonars();
+
+  for(int i=0; i < NUM_STRIPS; i++) {
+    moveAndIntensify(leds[i]);
+    setBottomValue(leds[i]);
+  }
+  FastLED.show();
+
+  counter++;
+  //delay(100);
+}
+
+
 void initLEDs() {
   FastLED.addLeds<WS2811, LED_DATA_PIN_0, BRG>(leds[0], NUM_LEDS);
   FastLED.addLeds<WS2811, LED_DATA_PIN_1, BRG>(leds[1], NUM_LEDS);
@@ -50,19 +65,6 @@ void initSonars() {
   }
 }
 
-
-void loop() {
-  readAllSonars();
-
-  for(int i=0; i < NUM_STRIPS; i++) {
-    moveAndIntensify(leds[i]);
-    setBottomValue(leds[i]);
-  }
-  FastLED.show();
-
-  counter++;
-  //delay(100);
-}
 
 void moveAndIntensify(CRGB leds[]) {
   for(int i=NUM_LEDS-1; i > 0; i--) {
