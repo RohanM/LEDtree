@@ -86,11 +86,6 @@ CRGB intensify(CRGB colour) {
   return colour;
 }
 
-// How about having each of the strips out of alignment?
-// ie. different starting point?
-// Randomly or sequentially (--> spiral)
-
-
 void setBottomValue(int stripNo) {
   float sonarEffect = calcSonarEffect(proximities[0]);
 
