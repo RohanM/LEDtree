@@ -126,11 +126,27 @@ void setLedLevel(int level) {
 
 void readAllSonars() {
   int sonar = 0; // Will be a loop over 0..NUM_STRIPS
-  incrementSonarIndex(sonar);
   takeSonarReading(sonar);
   proximities[sonar] = avgSonarReading(sonar);
 
-  Serial.println(proximities[sonar]);
+  if(sonarIndices[sonar] % 10 == 0) {
+    Serial.println(proximities[sonar]);
+    
+  }
+}
+
+
+void takeSonarReading(int sonar) {
+  int reading = readSonar();
+
+  // Record zeros as distant, not close
+  if(reading == 0) {
+    // 700 cm is furthest common reading
+    reading = 700;
+  }
+
+  sonarReadings[sonar][sonarIndices[sonar]] = reading;
+  incrementSonarIndex(sonar);
 }
 
 void incrementSonarIndex(int sonar) {
@@ -138,10 +154,6 @@ void incrementSonarIndex(int sonar) {
   if(sonarIndices[sonar] >= NUM_SONAR_SAMPLES) {
     sonarIndices[sonar] = 0;
   }
-}
-
-void takeSonarReading(int sonar) {
-  sonarReadings[sonar][sonarIndices[sonar]] = readSonar();
 }
 
 int avgSonarReading(int strip) {
