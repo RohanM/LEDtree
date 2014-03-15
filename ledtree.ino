@@ -92,12 +92,30 @@ CRGB intensify(CRGB colour) {
 
 
 void setBottomValue(CRGB leds[]) {
-  int sonar = proximities[0];
+  float sonarEffect = calcSonarEffect(proximities[0]);
 
-  leds[0] = CHSV(90, 180, backgroundPulseBrightness(counter, 0));
-  if(sonar > 0 && sonar < 255) {
-    leds[0] += CHSV(30, 255, sonarBrightness(sonar));
+  // hue:        90 (green) to 30 (orange)
+  // saturation: 180 (most) to 255 (full)
+  // value:      70 (BPB) to 255 (full)
+
+  int h, s, v;
+  h = 90 - (60 * sonarEffect);
+  s = 180 + (75 * sonarEffect);
+  v = backgroundPulseBrightness(counter, 0) * (1 + (sonarEffect * 2.6));
+
+  Serial.println(sonarEffect);
+  
+  leds[0] = CHSV(h, s, v);
+}
+
+float calcSonarEffect(int sonarValue) {
+  float sonarEffect = 0;
+
+  if(sonarValue < 255) {
+    sonarEffect = (255 - sonarValue) / 255.0;
   }
+
+  return sonarEffect;
 }
 
 int backgroundPulseBrightness(int index, int offset) {
