@@ -69,9 +69,12 @@ void initSonars() {
 void moveAndIntensify(CRGB leds[]) {
   for(int i=NUM_LEDS-1; i > 0; i--) {
     leds[i] = leds[i-1];
+
+    /*
     if(i > NUM_LEDS/3*2) {
       leds[i] = intensify(leds[i]);
     }
+    */
   }
 }
 
