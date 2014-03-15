@@ -105,24 +105,6 @@ int sonarBrightness(int sonar) {
   return (255 - sonar) / 2;
 }
 
-void setLedLevel(int level) {
-  CRGB colours[] = {CRGB::Lime, CRGB::Pink, CRGB::Green, CRGB::Blue, CRGB::Purple};
-  CRGB colour;
-
-  for(int i=0; i < NUM_STRIPS; i++) {
-    for(int j=0; j < NUM_LEDS; j++) {
-      if(j*20 < level) {
-        colour = colours[i];
-      } else {
-        colour = CRGB::Black;
-      }
-      leds[i][j] = colour;
-    }
-  }
-  
-  FastLED.show();
-}
-
 
 void readAllSonars() {
   int sonar = 0; // Will be a loop over 0..NUM_STRIPS
@@ -131,7 +113,6 @@ void readAllSonars() {
 
   if(sonarIndices[sonar] % 10 == 0) {
     Serial.println(proximities[sonar]);
-    
   }
 }
 
