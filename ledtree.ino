@@ -34,7 +34,7 @@ void loop() {
 
   for(int i=0; i < NUM_STRIPS; i++) {
     moveAndIntensify(leds[i]);
-    setBottomValue(leds[i]);
+    setBottomValue(i);
   }
   FastLED.show();
 
@@ -91,21 +91,22 @@ CRGB intensify(CRGB colour) {
 // Randomly or sequentially (--> spiral)
 
 
-void setBottomValue(CRGB leds[]) {
+void setBottomValue(int stripNo) {
   float sonarEffect = calcSonarEffect(proximities[0]);
 
   // hue:        90 (green) to 30 (orange)
   // saturation: 180 (most) to 255 (full)
   // value:      70 (BPB) to 255 (full)
 
-  int h, s, v;
+  int offset, h, s, v;
+  offset = stripNo*10;
   h = 90 - (60 * sonarEffect);
   s = 180 + (75 * sonarEffect);
-  v = backgroundPulseBrightness(counter, 0) * (1 + (sonarEffect * 2.6));
+  v = backgroundPulseBrightness(counter, offset) * (1 + (sonarEffect * 2.6));
 
   Serial.println(sonarEffect);
   
-  leds[0] = CHSV(h, s, v);
+  leds[stripNo][0] = CHSV(h, s, v);
 }
 
 float calcSonarEffect(int sonarValue) {
@@ -119,7 +120,7 @@ float calcSonarEffect(int sonarValue) {
 }
 
 int backgroundPulseBrightness(int index, int offset) {
-  return (sin(index / 4.0) + 1.0) * 30.0 + 10;
+  return (sin((index+offset) / 4.0) + 1.0) * 30.0 + 10;
 }
 
 int sonarBrightness(int sonar) {
