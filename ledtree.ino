@@ -33,7 +33,7 @@ void loop() {
   readAllSonars();
 
   for(int i=0; i < NUM_STRIPS; i++) {
-    moveAndIntensify(leds[i]);
+    moveAndIntensify(i);
     setBottomValue(i);
   }
   FastLED.show();
@@ -66,13 +66,13 @@ void initSonars() {
 }
 
 
-void moveAndIntensify(CRGB leds[]) {
+void moveAndIntensify(int stripNo) {
   for(int i=NUM_LEDS-1; i > 0; i--) {
-    leds[i] = leds[i-1];
+    leds[stripNo][i] = leds[stripNo][i-1];
 
     /*
     if(i > NUM_LEDS/3*2) {
-      leds[i] = intensify(leds[i]);
+      leds[stripNo][i] = intensify(leds[stripNo][i]);
     }
     */
   }
@@ -99,7 +99,7 @@ void setBottomValue(int stripNo) {
   // value:      70 (BPB) to 255 (full)
 
   int offset, h, s, v;
-  offset = stripNo*10;
+  offset = stripNo * 10;
   h = 90 - (60 * sonarEffect);
   s = 180 + (75 * sonarEffect);
   v = backgroundPulseBrightness(counter, offset) * (1 + (sonarEffect * 2.6));
