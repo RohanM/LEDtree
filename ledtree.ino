@@ -6,7 +6,7 @@
 
 #define NUM_SONAR_SAMPLES 10
 
-#define SONAR_DEVICE 112
+#define SONAR_DEVICE 112 // 112, 113, 114, 115, 116
 
 #define LED_DATA_PIN_0 2
 #define LED_DATA_PIN_1 3
@@ -14,11 +14,32 @@
 #define LED_DATA_PIN_3 5
 #define LED_DATA_PIN_4 6
 
+
 int counter;
 CRGB leds[NUM_STRIPS][NUM_LEDS];
 int sonarReadings[NUM_STRIPS][NUM_SONAR_SAMPLES];
 int sonarIndices[NUM_STRIPS];
 int proximities[NUM_STRIPS];
+
+
+
+
+/* TODO
+
+Effect for when all sonars have someone near them (value < 75 or so). Ideas:
+- Put saturated rainbow colours in bottom value while conditions last
+  - In a spiral. Use offset to make each strip a little different, but in sequence.
+- Draw a spiral around the tree, starting at the base
+- 
+
+
+Rainbow rain
+- Orange glow reaches top on all sides
+- Rainbow colours rain down
+  - Twinkling effect - keep hue the same, random frames it sparkles bright white
+- Can only be triggered once every 10 m or so
+
+*/
 
 
 void setup() {
@@ -70,11 +91,9 @@ void moveAndIntensify(int stripNo) {
   for(int i=NUM_LEDS-1; i > 0; i--) {
     leds[stripNo][i] = leds[stripNo][i-1];
 
-    /*
-    if(i > NUM_LEDS/3*2) {
+    if(i > NUM_LEDS/4*3) {
       leds[stripNo][i] = intensify(leds[stripNo][i]);
     }
-    */
   }
 }
 
