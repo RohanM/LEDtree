@@ -6,17 +6,17 @@
 
 #define NUM_SONAR_SAMPLES 10
 
-#define SONAR_DEVICE 112 // 112, 113, 114, 115, 116
-
 #define LED_DATA_PIN_0 2
 #define LED_DATA_PIN_1 3
 #define LED_DATA_PIN_2 4
 #define LED_DATA_PIN_3 5
 #define LED_DATA_PIN_4 6
 
+int sonarDevices[] = {112, 113, 114, 115, 116};
 
 int counter;
 CRGB leds[NUM_STRIPS][NUM_LEDS];
+int nextSonar = 0;
 int sonarReadings[NUM_STRIPS][NUM_SONAR_SAMPLES];
 int sonarIndices[NUM_STRIPS];
 int proximities[NUM_STRIPS];
@@ -50,20 +50,6 @@ void setup() {
   counter = 0;
 }
 
-void loop() {
-  readAllSonars();
-
-  for(int i=0; i < NUM_STRIPS; i++) {
-    moveAndIntensify(i);
-    setBottomValue(i);
-  }
-  FastLED.show();
-
-  counter++;
-  //delay(100);
-}
-
-
 void initLEDs() {
   FastLED.addLeds<WS2811, LED_DATA_PIN_0, BRG>(leds[0], NUM_LEDS);
   FastLED.addLeds<WS2811, LED_DATA_PIN_1, BRG>(leds[1], NUM_LEDS);
@@ -87,6 +73,19 @@ void initSonars() {
 }
 
 
+void loop() {
+  readNextSonar();
+
+  for(int i=0; i < NUM_STRIPS; i++) {
+    moveAndIntensify(i);
+    setBottomValue(i);
+  }
+  FastLED.show();
+
+  counter++;
+}
+
+
 void moveAndIntensify(int stripNo) {
   for(int i=NUM_LEDS-1; i > 0; i--) {
     leds[stripNo][i] = leds[stripNo][i-1];
@@ -106,7 +105,7 @@ CRGB intensify(CRGB colour) {
 }
 
 void setBottomValue(int stripNo) {
-  float sonarEffect = calcSonarEffect(proximities[0]);
+  float sonarEffect = calcSonarEffect(proximities[stripNo]);
 
   // hue:        90 (green) to 30 (orange)
   // saturation: 180 (most) to 255 (full)
@@ -118,7 +117,7 @@ void setBottomValue(int stripNo) {
   s = 180 + (75 * sonarEffect);
   v = backgroundPulseBrightness(counter, offset) * (1 + (sonarEffect * 2.6));
 
-  Serial.println(sonarEffect);
+  //Serial.println(sonarEffect);
   
   leds[stripNo][0] = CHSV(h, s, v);
 }
@@ -141,20 +140,19 @@ int sonarBrightness(int sonar) {
   return (255 - sonar) / 2;
 }
 
+void readNextSonar() {
+  takeSonarReading(nextSonar);
+  proximities[nextSonar] = avgSonarReading(nextSonar);
 
-void readAllSonars() {
-  int sonar = 0; // Will be a loop over 0..NUM_STRIPS
-  takeSonarReading(sonar);
-  proximities[sonar] = avgSonarReading(sonar);
-
-  if(sonarIndices[sonar] % 10 == 0) {
-    Serial.println(proximities[sonar]);
+  nextSonar++;
+  if(nextSonar >= NUM_STRIPS) {
+    nextSonar = 0;
   }
 }
 
 
 void takeSonarReading(int sonar) {
-  int reading = readSonar();
+  int reading = readSonar(sonarDevices[sonar]);
 
   // Record zeros as distant, not close
   if(reading == 0) {
@@ -173,20 +171,24 @@ void incrementSonarIndex(int sonar) {
   }
 }
 
-int avgSonarReading(int strip) {
+int avgSonarReading(int sonar) {
   int sum = 0;
 
   for(int i=0; i < NUM_SONAR_SAMPLES; i++) {
-    sum += sonarReadings[strip][i];
+    sum += sonarReadings[sonar][i];
   }
 
   return sum / NUM_SONAR_SAMPLES;
 }
 
 
-int readSonar() {
+
+
+// This function is slow, taking about 150 ms for a reading
+// About half of this is the 70 ms delay waiting for the reading to come back from the sonar
+int readSonar(int device) {
   // step 1: instruct sensor to read echoes
-  Wire.beginTransmission(SONAR_DEVICE); // transmit to device #112 (0x70)
+  Wire.beginTransmission(device); // transmit to device #112 (0x70)
                                // the address specified in the datasheet is 224 (0xE0)
                                // but i2c adressing uses the high 7 bits so it's 112
   Wire.write(byte(0x00));      // sets register pointer to the command register (0x00)  
@@ -199,12 +201,12 @@ int readSonar() {
   delay(70);                   // datasheet suggests at least 65 milliseconds
 
   // step 3: instruct sensor to return a particular echo reading
-  Wire.beginTransmission(SONAR_DEVICE); // transmit to device #112
+  Wire.beginTransmission(device); // transmit to device #112
   Wire.write(byte(0x02));      // sets register pointer to echo #1 register (0x02)
   Wire.endTransmission();      // stop transmitting
 
   // step 4: request reading from sensor
-  Wire.requestFrom(SONAR_DEVICE, 2);    // request 2 bytes from slave device #112
+  Wire.requestFrom(device, 2);    // request 2 bytes from slave device #112
 
   // step 5: receive reading from sensor
   int reading = 0;
@@ -222,8 +224,8 @@ int readSonar() {
     //Serial.println(reading);   // print the reading
     
     //Serial.println("..");
-    
   }
   
   return reading;
 }
+
